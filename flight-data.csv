@@ -1,0 +1,152 @@
+departure_airport_iata,arrival_airport_iata,airline_code,flight_date,flight_number,aircraft_type,flight_duration_hours,tags
+ANC,SEA,AS,1995-06-10,121,Boeing 727-200,3.5,alaska-airlines;boeing
+SEA,ANC,AS,1995-07-15,88,McDonnell Douglas MD-83,3.7,alaska-airlines
+SFO,ORD,UA,1995-09-05,567,Boeing 727-200,3.6,united-airlines;boeing
+DFW,ORD,AA,1995-11-20,1422,McDonnell Douglas MD-82,2.0,american-airlines
+ATL,LGA,DL,1996-02-12,310,Boeing 727-200,4.4,delta-air-lines;boeing
+DTW,MSP,NW,1996-04-03,78,Douglas DC-9-50,3.5,northwest-airlines
+SEA,SFO,AS,1996-05-28,234,McDonnell Douglas MD-83,4.7,alaska-airlines
+EWR,IAH,CO,1996-08-19,115,Boeing 737-300,4.6,continental-airlines;boeing;737
+DAL,HOU,WN,1996-10-01,552,Boeing 737-300,4.5,southwest-airlines;boeing;737
+PHL,CLT,US,1997-01-07,430,Boeing 737-400,2.1,us-airways;boeing;737
+ANC,PDX,AS,1997-03-14,75,Boeing 737-200 Combi,4.8,alaska-airlines;boeing;737
+ORD,LAX,AA,1997-06-22,910,McDonnell Douglas DC-10,5.2,american-airlines
+ATL,DFW,DL,1997-08-03,1880,Lockheed L-1011 TriStar,2.6,delta-air-lines
+DEN,SFO,UA,1997-10-29,241,Boeing 737-300,4.5,united-airlines;boeing;737
+SEA,LAX,AS,1998-01-15,465,McDonnell Douglas MD-83,4.5,alaska-airlines
+MSP,SEA,NW,1998-04-05,350,Boeing 757-200,4.0,northwest-airlines;boeing
+IAH,LAX,CO,1998-07-11,888,Boeing 727-200,4.1,continental-airlines;boeing
+PHX,LAS,WN,1998-09-23,1201,Boeing 737-500,2.0,southwest-airlines;boeing;737
+JFK,SFO,AA,1998-12-08,211,Boeing 767-200ER,2.3,american-airlines;boeing
+SFO,SEA,AS,1999-02-18,102,McDonnell Douglas MD-83,4.0,alaska-airlines
+SLC,ATL,DL,1999-05-03,975,Boeing 757-200,4.9,delta-air-lines;boeing
+ORD,MIA,UA,1999-07-20,622,Boeing 727-200,5.6,united-airlines;boeing
+CLT,PIT,US,1999-10-04,189,Fokker 100,1.1,us-airways
+SEA,GEG,AS,1999-11-15,2001,Dash 8-Q200 (Horizon Air),2.2,alaska-airlines
+DTW,MEM,NW,2000-01-25,1701,Douglas DC-9-30,2.4,northwest-airlines
+DFW,AUS,AA,2000-03-30,1350,McDonnell Douglas MD-82,2.7,american-airlines
+EWR,SFO,CO,2000-06-05,45,Boeing 757-200,5.2,continental-airlines;boeing
+ANC,SEA,AS,2000-08-12,95,Boeing 737-400,3.5,alaska-airlines;boeing;737
+ATL,MCO,DL,2000-10-28,560,McDonnell Douglas MD-88,4.2,delta-air-lines
+MDW,STL,WN,2001-02-01,345,Boeing 737-300,4.2,southwest-airlines;boeing;737
+SFO,DEN,UA,2001-04-17,1190,Boeing 737-500,1.4,united-airlines;boeing;737
+SEA,SAN,AS,2001-07-03,456,Boeing 737-400,1.3,alaska-airlines;boeing;737
+JFK,LAX,AA,2001-09-08,67,Boeing 767-300ER,5.6,american-airlines;boeing
+MSP,ORD,NW,2002-01-10,922,Airbus A320-200,4.3,northwest-airlines;airbus;a320
+JFK,FLL,B6,2002-03-22,101,Airbus A320-200,3.8,jetblue-airways;airbus;a320
+PDX,BOI,AS,2002-05-16,2102,Dash 8-Q400 (Horizon Air),3.4,alaska-airlines
+IAH,MSY,CO,2002-08-01,1877,Boeing 737-500,2.1,continental-airlines;boeing;737
+PHL,BOS,US,2002-10-09,763,Boeing 737-300,5.2,us-airways;boeing;737
+SLC,LAX,DL,2003-01-20,1245,Boeing 737-300,2.0,delta-air-lines;boeing;737
+SFO,ANC,AS,2003-04-03,82,Boeing 737-400,3.1,alaska-airlines;boeing;737
+DFW,OKC,AA,2003-06-15,1890,McDonnell Douglas MD-82,5.3,american-airlines
+ORD,PHX,UA,2003-08-28,789,Airbus A319-100,3.6,united-airlines;airbus
+OAK,BUR,WN,2003-11-05,2001,Boeing 737-700,5.4,southwest-airlines;boeing;737
+DTW,AMS,NW,2004-02-11,80,McDonnell Douglas DC-10 (Example of int'l on US carrier - for pattern,3.3,northwest-airlines
+SEA,PHX,AS,2004-05-07,533,Boeing 737-700,2.5,alaska-airlines;boeing;737
+ATL,SEA,DL,2004-07-23,205,Boeing 767-300ER,5.3,delta-air-lines;boeing
+LGB,JFK,B6,2004-10-01,220,Airbus A320-200,4.5,jetblue-airways;airbus;a320
+MIA,LGA,AA,2005-01-14,550,Boeing 757-200,5.7,american-airlines;boeing
+EWR,LAX,CO,2005-04-02,301,Boeing 757-200,4.9,continental-airlines;boeing
+ANC,FAI,AS,2005-06-20,70,Boeing 737-400 Combi,3.8,alaska-airlines;boeing;737
+DEN,ORD,UA,2005-09-05,470,Airbus A320-200,4.0,united-airlines;airbus;a320
+BWI,MCO,WN,2005-11-18,812,Boeing 737-700,5.7,southwest-airlines;boeing;737
+CLT,PHX,US,2006-02-08,1121,Airbus A319-100,4.9,us-airways;airbus
+SFO,PDX,AS,2006-05-01,145,Boeing 737-700,3.5,alaska-airlines;boeing;737
+ATL,CVG,DL,2006-07-17,1988,McDonnell Douglas MD-88,3.2,delta-air-lines
+ORD,STL,AA,2006-10-03,2310,McDonnell Douglas MD-83,1.8,american-airlines
+JFK,BOS,B6,2007-01-12,50,Embraer E190,5.2,jetblue-airways;embraer
+SEA,EUG,AS,2007-03-29,2305,Dash 8-Q400 (Horizon Air),1.8,alaska-airlines
+IAH,DEN,CO,2007-06-08,1492,Boeing 737-800,5.4,continental-airlines;boeing;737
+SFO,IAD,UA,2007-08-22,1650,Boeing 757-200,1.9,united-airlines;boeing
+DAL,SAT,WN,2007-11-01,677,Boeing 737-300,1.4,southwest-airlines;boeing;737
+MSP,PHX,DL,2008-02-14,1500,Airbus A320-200,6.0,delta-air-lines;airbus;a320
+SEA,ANC,AS,2008-05-03,68,Boeing 737-800,3.7,alaska-airlines;boeing;737
+DFW,LAX,AA,2008-07-20,49,Boeing 737-800,5.2,american-airlines;boeing;737
+MEM,ATL,NW,2008-10-06,121,Douglas DC-9-50 (Pre-Delta merger finalization),2.5,northwest-airlines
+FLL,AUS,B6,2009-01-19,765,Airbus A320-200,4.5,jetblue-airways;airbus;a320
+LAX,SEA,AS,2009-04-08,321,Boeing 737-700,4.6,alaska-airlines;boeing;737
+ATL,LAX,DL,2009-06-25,89,Boeing 777-200LR,4.6,delta-air-lines;boeing
+ORD,SFO,UA,2009-09-10,202,Boeing 777-200ER,3.2,united-airlines;boeing
+PHX,SMF,WN,2009-11-23,1430,Boeing 737-700,4.7,southwest-airlines;boeing;737
+DFW,MCI,AA,2010-02-11,1170,McDonnell Douglas MD-83,2.3,american-airlines
+SFO,SAN,AS,2010-05-06,177,Boeing 737-800,5.6,alaska-airlines;boeing;737
+DTW,ORD,DL,2010-07-28,2233,Airbus A319-100,2.8,delta-air-lines;airbus
+EWR,MCO,CO,2010-10-15,1710,Boeing 737-900ER (Pre-United merger finalization),2.9,continental-airlines;boeing;737
+JFK,SJU,B6,2011-01-22,11,Airbus A320-200,3.1,jetblue-airways;airbus;a320
+PDX,RDM,AS,2011-04-10,2450,Dash 8-Q400 (Horizon Air),1.1,alaska-airlines
+IAH,EWR,UA,2011-06-30,566,Boeing 737-800 (Post Continental merger integration start),1.6,united-airlines;boeing;737
+LAX,MIA,AA,2011-09-16,300,Boeing 757-200,5.2,american-airlines;boeing
+MDW,DEN,WN,2011-12-01,95,Boeing 737-700,2.2,southwest-airlines;boeing;737
+SLC,DEN,DL,2012-02-20,1099,Boeing 737-800,4.8,delta-air-lines;boeing;737
+ANC,SEA,AS,2012-05-09,4,Boeing 737-900ER,3.5,alaska-airlines;boeing;737
+DFW,PHL,AA,2012-07-25,1088,Boeing 737-800,1.3,american-airlines;boeing;737
+SFO,BOS,UA,2012-10-11,1148,Boeing 757-200,4.5,united-airlines;boeing
+BOS,CLT,B6,2013-01-17,403,Embraer E190,5.7,jetblue-airways;embraer
+SEA,JNU,AS,2013-04-05,822,Boeing 737-700,1.9,alaska-airlines;boeing;737
+ATL,BOS,DL,2013-06-22,2045,Boeing 757-200,2.4,delta-air-lines;boeing
+PHX,SFO,US,2013-09-07,702,Airbus A321-200 (Pre-AA merger finalization),5.2,us-airways;airbus
+LAS,LAX,WN,2013-11-19,123,Boeing 737-800,1.9,southwest-airlines;boeing;737
+CLT,MCO,AA,2014-02-09,1675,Airbus A320-200 (Post US Airways merger integration start),3.0,american-airlines;airbus;a320
+SFO,LAX,AS,2014-05-03,501,Boeing 737-800,5.9,alaska-airlines;boeing;737
+JFK,SFO,DL,2014-07-19,990,Boeing 767-300ER,1.7,delta-air-lines;boeing
+ORD,LGA,UA,2014-10-04,1990,Boeing 737-900ER,3.9,united-airlines;boeing;737
+FLL,DCA,B6,2015-01-15,915,Airbus A320-200,5.3,jetblue-airways;airbus;a320
+SEA,HNL,AS,2015-04-02,16,Boeing 737-800,5.4,alaska-airlines;boeing;737
+DFW,SEA,AA,2015-06-18,250,Boeing 737-800,3.9,american-airlines;boeing;737
+MSP,LAX,DL,2015-09-03,280,Airbus A321-200,5.8,delta-air-lines;airbus
+DAL,ATL,WN,2015-11-12,5001,Boeing 737-700,4.6,southwest-airlines;boeing;737
+EWR,AUS,UA,2016-02-06,734,Boeing 737-800,3.0,united-airlines;boeing;737
+ANC,PDX,AS,2016-05-01,311,Boeing 737-900ER,4.8,alaska-airlines;boeing;737
+JFK,LAX,AA,2016-07-15,100,Airbus A321T,4.5,american-airlines;airbus
+ATL,SAN,DL,2016-10-02,1789,Boeing 737-900ER,2.3,delta-air-lines;boeing;737
+BOS,RDU,B6,2017-01-10,1234,Embraer E190,5.5,jetblue-airways;embraer
+SEA,MFR,AS,2017-03-28,2678,Dash 8-Q400 (Horizon Air),2.7,alaska-airlines
+SFO,OGG,UA,2017-06-09,1545,Boeing 777-200,3.4,united-airlines;boeing
+PHX,DEN,AA,2017-08-25,2001,Airbus A319-100,5.7,american-airlines;airbus
+MDW,PHX,WN,2017-11-07,110,Boeing 737-800,1.2,southwest-airlines;boeing;737
+DTW,SFO,DL,2018-02-03,888,Airbus A330-200,2.4,delta-air-lines;airbus
+SEA,FAI,AS,2018-04-29,7,Boeing 737-700,3.0,alaska-airlines;boeing;737
+CLT,BOS,AA,2018-07-12,1900,Airbus A321-200,2.1,american-airlines;airbus
+IAH,MCO,UA,2018-09-28,2402,Boeing 737-900ER,3.1,united-airlines;boeing;737
+JFK,LAX,B6,2019-01-08,88,Airbus A321-200,4.9,jetblue-airways;airbus
+SFO,JFK,AS,2019-03-25,111,Boeing 737-900ER,2.0,alaska-airlines;boeing;737
+ATL,JFK,DL,2019-06-05,453,Airbus A220-100,2.9,delta-air-lines;airbus
+DFW,MSY,AA,2019-08-19,1600,McDonnell Douglas MD-83 (Farewell period for MD-80s),3.1,american-airlines
+LAS,SAN,WN,2019-10-31,789,Boeing 737 MAX 8 (Pre-grounding),1.5,southwest-airlines;boeing;737
+ORD,EWR,UA,2020-01-20,1700,Boeing 787-9 (Domestic repositioning/high demand),2.5,united-airlines;boeing;dreamliner
+ANC,ORD,AS,2020-02-15,9,Boeing 737-800,1.4,alaska-airlines;boeing;737
+ATL,TPA,DL,2020-05-05,2020,McDonnell Douglas MD-90 (Farewell period for MD-90s),2.0,delta-air-lines
+LAX,ORD,AA,2020-07-01,220,Boeing 787-8,4.7,american-airlines;boeing;dreamliner
+BOS,MIA,B6,2020-10-10,1022,Airbus A320-200,4.2,jetblue-airways;airbus;a320
+SEA,DAL,AS,2021-01-05,188,Boeing 737-900ER,2.7,alaska-airlines;boeing;737
+DEN,LAX,UA,2021-03-18,1201,Boeing 737 MAX 9,2.0,united-airlines;boeing;737
+SLC,SEA,DL,2021-06-02,500,Airbus A321neo,4.3,delta-air-lines;airbus
+ATL,FLL,WN,2021-08-14,330,Boeing 737-700,3.5,southwest-airlines;boeing;737
+MIA,JFK,AA,2021-10-29,718,Boeing 777-200ER,2.9,american-airlines;boeing
+SFO,AUS,AS,2022-01-12,1280,Boeing 737-900ER,3.1,alaska-airlines;boeing;737
+EWR,SFO,UA,2022-04-07,2100,Boeing 777-300ER,3.8,united-airlines;boeing
+LAX,BOS,DL,2022-06-23,1800,Airbus A330-900neo,5.3,delta-air-lines;airbus
+JFK,LHR,B6,2022-08-08,6,Airbus A321LR (Example of int'l on US carrier,3.5,jetblue-airways;airbus
+DEN,MDW,WN,2022-10-17,1980,Boeing 737 MAX 8,2.7,southwest-airlines;boeing;737
+SEA,DCA,AS,2023-01-09,1,Boeing 737 MAX 9,1.6,alaska-airlines;boeing;737
+DFW,CLT,AA,2023-03-22,1588,Boeing 737-800,4.7,american-airlines;boeing;737
+ORD,MCO,UA,2023-05-30,2350,Boeing 737 MAX 8,3.1,united-airlines;boeing;737
+ATL,HNL,DL,2023-07-11,301,Airbus A350-900,1.4,delta-air-lines;airbus;a350
+BOS,LAX,B6,2023-09-05,1999,Airbus A321neo,3.7,jetblue-airways;airbus
+ANC,LAX,AS,2023-11-10,73,Boeing 737-800,1.1,alaska-airlines;boeing;737
+PHX,SEA,WN,2024-01-03,250,Boeing 737-700,4.3,southwest-airlines;boeing;737
+MIA,DFW,AA,2024-02-20,2700,Boeing 787-9,1.1,american-airlines;boeing;dreamliner
+SFO,EWR,UA,2024-04-01,400,Boeing 787-10,1.9,united-airlines;boeing;dreamliner
+SEA,JFK,DL,2024-05-15,1122,Airbus A321neo,2.3,delta-air-lines;airbus
+SFO,BOI,AS,2024-06-25,555,Embraer E175 (Operated by SkyWest/Horizon),4.7,alaska-airlines;embraer
+CLT,ORD,AA,2024-08-01,1212,Airbus A321-200,1.7,american-airlines;airbus
+IAH,PHX,UA,2024-09-10,1985,Boeing 737-900ER,5.1,united-airlines;boeing;737
+MSP,RSW,DL,2024-11-05,2501,Boeing 757-200,3.1,delta-air-lines;boeing
+DAL,LAS,WN,2024-12-15,3000,Boeing 737 MAX 8,5.5,southwest-airlines;boeing;737
+PDX,SAN,AS,2025-01-20,921,Boeing 737 MAX 9,1.5,alaska-airlines;boeing;737
+FLL,ATL,B6,2025-02-14,300,Airbus A220-300,2.7,jetblue-airways;airbus
+LAX,HNL,AA,2025-03-10,88,Boeing 777-200ER,3.4,american-airlines;boeing
+DEN,SEA,UA,2025-04-05,1601,Boeing 737-800,5.3,united-airlines;boeing;737
+DTW,LAX,DL,2025-05-01,750,Airbus A350-900,4.0,delta-air-lines;airbus;a350
+SEA,GEG,AS,2025-05-14,2025,Dash 8-Q400 (Horizon Air),2.3,alaska-airlines

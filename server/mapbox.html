@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>Mapbox Test</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css' rel='stylesheet' />
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div id='map'></div>
+    <div id='info'>
+        <h3>Mapbox Test</h3>
+        <div id='status'>Loading map...</div>
+    </div>
+
+    <script>
+        // Set your Mapbox token here - this should work
+        mapboxgl.accessToken = 'pk.eyJ1IjoiaWNlYnVybnIiLCJhIjoiY2xvcnM0ZjUxMDFtNzJscGJlMDh3dnJ5NSJ9.YdCw5_DtPU1c-b-YVn4lCg';
+        
+        // Status update function
+        function updateStatus(message) {
+            document.getElementById('status').innerHTML += '<br>' + message;
+        }
+
+        try {
+            updateStatus('Creating map...');
+            
+            // Create a new map
+            const map = new mapboxgl.Map({
+                container: 'map',
+                style: 'mapbox://styles/mapbox/dark-v11',
+                center: [-98.5, 39.5], // Center on US
+                zoom: 2
+            });
+
+            // Log events
+            map.on('load', function() {
+                updateStatus('Map loaded successfully');
+            });
+
+            map.on('error', function(e) {
+                updateStatus('ERROR: ' + e.error);
+                console.error('Map error:', e);
+            });
+
+            // Add some test data points
+            map.on('load', function() {
+                // Example flight routes
+                const flights = [
+                    {from: [-122.3088, 47.4502], to: [-87.9073, 41.9742]}, // SEA-ORD
+                    {from: [-87.9073, 41.9742], to: [-73.7781, 40.6413]}, // ORD-JFK
+                    {from: [-118.4085, 33.9416], to: [-122.3790, 37.6213]}  // LAX-SFO
+                ];
+                
+                updateStatus('Adding flight routes: ' + flights.length);
+                
+                // Add source and layer for flight routes
+                map.addSource('flights', {
+                    'type': 'geojson',
+                    'data': {
+                        'type': 'FeatureCollection',
+                        'features': flights.map(flight => ({
+                            'type': 'Feature',
+                            'geometry': {
+                                'type': 'LineString',
+                                'coordinates': [flight.from, flight.to]
+                            },
+                            'properties': {
+                                'color': '#ff0000'
+                            }
+                        }))
+                    }
+                });
+                
+                map.addLayer({
+                    'id': 'flight-routes',
+                    'type': 'line',
+                    'source': 'flights',
+                    'layout': {
+                        'line-join': 'round',
+                        'line-cap': 'round'
+                    },
+                    'paint': {
+                        'line-color': ['get', 'color'],
+                        'line-width': 3,
+                        'line-opacity': 0.8
+                    }
+                });
+                
+                updateStatus('Added flight routes successfully');
+            });
+        } catch (error) {
+            updateStatus('CRITICAL ERROR: ' + error.message);
+            console.error('Critical error:', error);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+Okay, absolutely. Here's a set of instructions for a software developer to build the MVP of "Solstice Navigator," based on our detailed discussions:
+
+---
+
+**Project: Solstice Navigator - MVP Development Instructions**
+
+**Client:** Steve Riffe (Data Visualization Engineer, Aviation Geek)
+**Project Goal:** Develop a responsive map visualization web application ("Solstice Navigator") enabling users to log, view, and analyze their flight routes. The MVP should be error-free, highly responsive, and provide a clean, modern user experience.
+
+**I. Core MVP Features & Deliverables:**
+
+1.  **User Authentication:**
+    * Secure login/registration via Google OAuth 2.0.
+    * Secure login/registration via Facebook OAuth 2.0.
+2.  **Flight Data Management:**
+    * Form for manual input of individual flight segments.
+    * CSV file upload for bulk flight data import (see CSV template below).
+    * Persistent storage of flight data per user.
+3.  **Key Performance Indicators (KPIs):**
+    * Display at the top of the main interface:
+        * Total unique airlines flown.
+        * Total miles flown (calculated using Haversine formula).
+        * Total hours in the air (sum of user-inputted durations).
+4.  **Interactive Map Visualization:**
+    * Large central map area.
+    * Render flight routes using **Deck.gl** on a Mapbox base map.
+        * Mapbox Style ID: `mapbox://styles/steveriffe/clo1pnnf2005301q29moshbss`
+    * Color routes by airline:
+        * Use official brand colors where available (client to provide via spreadsheet).
+        * Default to **white (`#FFFFFF`)** for unknown airline brand colors.
+        * Use dark grey for route segments flown by multiple airlines by the same user.
+    * **Heatmap Layer (Deck.gl):** Toggleable option to visualize flight density (e.g., frequently used airports or flight corridors).
+    * **Smart Route Aggregation/Simplification (Deck.gl):** Implement visual simplification/aggregation of routes at varying zoom levels to manage density and maintain clarity.
+5.  **Filtering & Navigation:**
+    * Dedicated UI section between the map and the flight data table.
+    * Filter displayed routes and data table by: departure/arrival airport (IATA code), airline, flight date (range), flight number, aircraft type, user-defined tags (semicolon-separated), and flight duration (range).
+6.  **Flight Data Table:**
+    * Display user's flight log in a sortable and filterable table at the bottom of the screen.
+    * Table columns: Airline, From (Departure Airport IATA), To (Arrival Airport IATA), Date, Flight Number, Aircraft Type, Duration (Hours), Distance (Miles), Tags.
+    * Table content should dynamically update based on active filters.
+7.  **Route Information Tooltip:**
+    * On map route hover or click, display a tooltip showing a compact table with flight details (Airline, Flt No., Date, Aircraft, Tags).
+8.  **PNG Image Downloads:**
+    * **Full Color Version:** Download current map view (routes + Mapbox background) as a PNG.
+    * **Minimal Dark Grey Line Version (Transparent Background):** Download only the visible routes as dark grey lines on a transparent PNG background. Implement using **Method 2: Separate Canvas/SVG generation** for optimal quality (render only routes to a new, transparent off-screen canvas).
+
+**II. Mandatory Technology Stack:**
+
+* **Frontend:**
+    * **React** (preferred, but Vue.js is an acceptable alternative if strong reasons exist).
+    * **Mapbox GL JS** (for base map).
+    * **Deck.gl** (for route rendering, heatmaps, aggregation, performance with 1000+ routes).
+* **Backend:**
+    * **Node.js with Express.js** (preferred for seamless integration with JS front-end and real-time capabilities).
+    * **Passport.js** (for Google/Facebook OAuth).
+* **Database:**
+    * **PostgreSQL**.
+
+**III. Key User Preferences & Design Directives:**
+
+* **Overall Aesthetic:** Clean, modern, minimalist, reminiscent of an "Apple advertising campaign."
+* **Color Palette:** Dominant colors: Medium Blue and White. Accents: Client's favorite color, green, can be used thoughtfully (e.g., for positive actions or highlights).
+* **UI Layout:**
+    1.  Top: KPIs.
+    2.  Center: Large Map Area.
+    3.  Middle (between Map & Table): Filters & Navigation controls (including heatmap toggle, PNG download options).
+    4.  Bottom: Flight Data Table.
+* **Responsiveness:** Application must be fully responsive across desktop, tablet, and mobile screen sizes.
+* **Performance:** High responsiveness is key, especially with map interactions and filtering, even with 1000+ routes.
+
+**IV. Database Schema & Data Sources:**
+
+1.  **`users` Table:**
+    * `user_id` (PK, SERIAL or UUID)
+    * `auth_provider` (VARCHAR, e.g., 'google', 'facebook')
+    * `provider_id` (VARCHAR)
+    * `email` (VARCHAR, UNIQUE)
+    * `display_name` (VARCHAR)
+    * `created_at` (TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP)
+2.  **`airlines` Table:**
+    * `airline_id` (PK, VARCHAR e.g., IATA/ICAO code)
+    * `airline_name` (VARCHAR, UNIQUE)
+    * `brand_color_primary` (VARCHAR HEX, DEFAULT 'FFFFFF')
+    * `brand_color_secondary` (VARCHAR HEX, nullable)
+    * `needs_manual_color_input` (BOOLEAN, DEFAULT TRUE)
+    * *(Client will provide a spreadsheet for populating `brand_color_primary`)*
+3.  **`airports` Table (Reference Data):**
+    * Populate from: `https://github.com/lxndrblz/Airports/blob/main/airports.csv`
+    * `iata_code` (PK, VARCHAR(10))
+    * `name` (VARCHAR)
+    * `city` (VARCHAR)
+    * `country_id` (VARCHAR)
+    * `latitude` (DECIMAL(9,6))
+    * `longitude` (DECIMAL(9,6))
+4.  **`flights` Table:**
+    * `flight_id` (PK, SERIAL or UUID)
+    * `user_id` (FK referencing `users.user_id`)
+    * `departure_airport_iata` (VARCHAR(10), FK referencing `airports.iata_code`)
+    * `arrival_airport_iata` (VARCHAR(10), FK referencing `airports.iata_code`)
+    * `airline_code` (VARCHAR, FK referencing `airlines.airline_id`, nullable if airline not in db yet)
+    * `flight_date` (DATE)
+    * `flight_number` (VARCHAR, nullable)
+    * `aircraft_type` (VARCHAR, nullable)
+    * `flight_duration_hours` (DECIMAL(5,2), nullable)
+    * `distance_miles` (INTEGER, nullable, calculated on entry)
+    * `created_at` (TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP)
+5.  **`flight_tags` Table:**
+    * `flight_id` (FK referencing `flights.flight_id`)
+    * `tag_name` (VARCHAR)
+    * PRIMARY KEY (`flight_id`, `tag_name`)
+
+**V. CSV Upload Template (for flight data import):**
+
+| `departure_airport_iata` | `arrival_airport_iata` | `airline_code` | `flight_date` (YYYY-MM-DD) | `flight_duration_hours` (e.g., 2.5) | `flight_number` (Optional) | `aircraft_type` (Optional) | `tags` (Semicolon-separated; Optional) |
+| :----------------------- | :--------------------- | :------------- | :------------------------- | :-------------------------------------- | :--------------------------- | :------------------------- | :--------------------------------------- |
+| `PDX`                    | `ANC`                  | `AS`           | `2025-05-15`               | `3.5`                                   | `123`                        | `B738`                     | `Vacation;Family`                        |
+
+**VI. High-Level API Endpoint Expectations (RESTful):**
+
+* **Authentication:** `/auth/google`, `/auth/google/callback`, `/auth/facebook`, `/auth/facebook/callback`, `/auth/logout`, `/auth/user` (get current user).
+* **Flights:**
+    * `POST /api/flights` (create new flight, calculate distance)
+    * `GET /api/flights` (get user's flights, with filtering options)
+    * `PUT /api/flights/:id` (update flight)
+    * `DELETE /api/flights/:id` (delete flight)
+    * `POST /api/flights/upload_csv` (bulk import)
+* **KPIs:** `GET /api/kpis` (get user-specific KPIs).
+* **Airlines (for admin/color updates if needed):** `GET /api/airlines`, `PUT /api/airlines/:id`.
+* **Airports (for typeahead/validation):** `GET /api/airports/search?q=XYZ`.
+
+**VII. Key Functionality Implementation Notes:**
+
+* **Distance Calculation:** Use Haversine formula on the backend when a flight is created or updated, based on airport coordinates from the `airports` table. Store the result in `flights.distance_miles`.
+* **Input Validation:** Implement robust client-side and server-side validation for all user inputs (forms, CSV). For airport codes, validate against the `airports` table.
+* **Error Handling:** Provide clear user feedback for errors (e.g., invalid data, failed uploads, API errors).
+* **Security:** Ensure standard security practices (XSS prevention, CSRF protection if applicable for form submissions outside typical API calls, secure handling of API keys). API endpoints must be authenticated.
+
+**VIII. Suggested Development Phasing (High-Level):**
+
+1.  **Foundation:** Project setup, DB schema, API keys, user auth.
+2.  **Core Data & Map:** Airport data import, manual flight entry, basic route rendering on Mapbox/Deck.gl.
+3.  **Enhanced Visualization & UI:** Airline coloring, KPIs, flight table, CSV upload, filtering.
+4.  **Advanced Features:** Heatmaps, route aggregation, PNG downloads.
+5.  **Polish & Testing:** UI/UX refinement, responsiveness, comprehensive testing.
+
+Please ensure frequent communication with the client (Steve Riffe) for clarifications and iterative feedback, especially regarding UI/UX and specific behavior of visualization features.
+
+---
+
+This document should provide a clear and comprehensive guide for the developer.

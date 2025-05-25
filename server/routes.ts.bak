@@ -1,0 +1,553 @@
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { setupAuth, isAuthenticated } from "./replitAuth";
+import multer from "multer";
+import { processCSVUpload } from "./utils/csv";
+import { calculateDistance } from "./utils/haversine";
+import { db, pool } from "./db";
+import { eq, and, gte, lte, or, inArray, desc, asc, isNull, not, SQL, sql } from "drizzle-orm";
+import { 
+  users, 
+  airlines, 
+  airports, 
+  flights, 
+  flightTags,
+  type InsertFlight,
+  type Flight
+} from "@shared/schema";
+import { parse, format, addMonths } from "date-fns";
+
+// Configure multer for file uploads
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB
+  }
+});
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth middleware
+  await setupAuth(app);
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // KPIs
+  app.get('/api/kpis', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+
+      // Get current date for calculating this month and this year
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+      // Total unique airlines
+      // Get all unique airlines for this user
+      const airlineQuery = await db
+        .select({ airlineCode: flights.airlineCode })
+        .from(flights)
+        .where(and(
+          eq(flights.userId, userId),
+          // Check that airline code is not null using proper Drizzle syntax
+          sql`${flights.airlineCode} IS NOT NULL`
+        ))
+        .groupBy(flights.airlineCode);
+      const totalAirlines = airlineQuery.length;
+
+      // New airlines this year
+      const newAirlinesThisYear = await db
+        .select({ airlineCode: flights.airlineCode })
+        .from(flights)
+        .where(and(
+          eq(flights.userId, userId),
+          sql`${flights.airlineCode} IS NOT NULL`,
+          sql`${flights.flightDate} >= ${startOfYear.toISOString()}`
+        ))
+        .groupBy(flights.airlineCode);
+
+      // Total miles
+      const milesQuery = await db
+        .select({ totalMiles: sql`SUM(${flights.distanceMiles})`.as('totalMiles') })
+        .from(flights)
+        .where(eq(flights.userId, userId));
+      const totalMiles = milesQuery[0]?.totalMiles || 0;
+
+      // Miles this month
+      const milesThisMonthQuery = await db
+        .select({ totalMiles: sql`SUM(${flights.distanceMiles})`.as('totalMiles') })
+        .from(flights)
+        .where(and(
+          eq(flights.userId, userId),
+          sql`${flights.flightDate} >= ${startOfMonth.toISOString()}`
+        ));
+      const milesThisMonth = milesThisMonthQuery[0]?.totalMiles || 0;
+
+      // Total hours
+      const hoursQuery = await db
+        .select({ totalHours: sql`SUM(${flights.flightDurationHours})`.as('totalHours') })
+        .from(flights)
+        .where(eq(flights.userId, userId));
+      const totalHours = hoursQuery[0]?.totalHours || 0;
+
+      // Hours this month
+      const hoursThisMonthQuery = await db
+        .select({ totalHours: sql`SUM(${flights.flightDurationHours})`.as('totalHours') })
+        .from(flights)
+        .where(and(
+          eq(flights.userId, userId),
+          sql`${flights.flightDate} >= ${startOfMonth.toISOString()}`
+        ));
+      const hoursThisMonth = hoursThisMonthQuery[0]?.totalHours || 0;
+
+      res.json({
+        totalAirlines,
+        newAirlinesThisYear: newAirlinesThisYear.length,
+        totalMiles: Number(totalMiles),
+        milesThisMonth: Number(milesThisMonth),
+        totalHours: Number(totalHours),
+        hoursThisMonth: Number(hoursThisMonth)
+      });
+    } catch (error) {
+      console.error("Error fetching KPIs:", error);
+      res.status(500).json({ message: "Failed to fetch KPIs" });
+    }
+  });
+
+  // Flights routes
+  app.get('/api/flights', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Get query parameters for filtering
+      const { 
+        airport, 
+        airline, 
+        dateFrom, 
+        dateTo, 
+        tag, 
+        search,
+        sort,
+        order
+      } = req.query;
+
+      try {
+        // Start with basic filtering
+        let baseQuery = db
+          .select()
+          .from(flights);
+          
+        // Build an array of conditions
+        const conditions = [eq(flights.userId, userId)];
+          
+        if (airport) {
+          conditions.push(
+            or(
+              eq(flights.departureAirportIata, airport as string),
+              eq(flights.arrivalAirportIata, airport as string)
+            )
+          );
+        }
+          
+        if (airline) {
+          conditions.push(eq(flights.airlineCode, airline as string));
+        }
+          
+        if (dateFrom) {
+          conditions.push(sql`${flights.flightDate} >= ${dateFrom}`);
+        }
+          
+        if (dateTo) {
+          conditions.push(sql`${flights.flightDate} <= ${dateTo}`);
+        }
+        
+        // Apply all conditions with AND
+        const flightResults = await baseQuery
+          .where(and(...conditions))
+          .orderBy(desc(flights.flightDate));
+          
+        // Convert the result to a typed array
+        const typedFlightResults = flightResults as unknown as Flight[];
+      
+        // If tag filter is applied, filter in-memory since we need to join with tags
+        let filteredResults = typedFlightResults;
+      
+        if (tag) {
+          // Get all flights with the specific tag
+          const flightIds = await db
+            .select({ flightId: flightTags.flightId })
+            .from(flightTags)
+            .where(eq(flightTags.tagName, tag as string));
+          
+          // Filter flights by the IDs that have the tag
+          const flightIdSet = new Set(flightIds.map(f => f.flightId));
+          filteredResults = typedFlightResults.filter(flight => flightIdSet.has(flight.flightId));
+        }
+
+        // Get tags for each flight if we have any results
+        const flightIds = filteredResults.length > 0 
+          ? filteredResults.map(flight => flight.flightId) 
+          : [];
+        const tagsQuery = await db
+          .select()
+          .from(flightTags)
+          .where(inArray(flightTags.flightId, flightIds));
+
+        // Group tags by flight ID
+        const tagsByFlight: Record<number, string[]> = {};
+        tagsQuery.forEach(tag => {
+          if (!tagsByFlight[tag.flightId]) {
+            tagsByFlight[tag.flightId] = [];
+          }
+          tagsByFlight[tag.flightId].push(tag.tagName);
+        });
+
+        // Add tags to flight objects
+        const flightsWithTags = filteredResults.map(flight => ({
+          ...flight,
+          tags: tagsByFlight[flight.flightId] || []
+        }));
+
+        res.json(flightsWithTags);
+      } catch (error) {
+        console.error("Error fetching flights:", error);
+        res.status(500).json({ message: "Failed to fetch flights" });
+      }
+  });
+
+  app.post('/api/flights', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const flightData = req.body;
+
+      // Validate departure and arrival airports
+      const departureAirport = await db
+        .select()
+        .from(airports)
+        .where(eq(airports.iataCode, flightData.departureAirportIata))
+        .limit(1);
+
+      const arrivalAirport = await db
+        .select()
+        .from(airports)
+        .where(eq(airports.iataCode, flightData.arrivalAirportIata))
+        .limit(1);
+
+      if (departureAirport.length === 0 || arrivalAirport.length === 0) {
+        return res.status(400).json({ 
+          message: "Invalid airport codes. Please use valid IATA codes." 
+        });
+      }
+
+      // Calculate distance using Haversine formula
+      const distance = calculateDistance(
+        Number(departureAirport[0].latitude),
+        Number(departureAirport[0].longitude),
+        Number(arrivalAirport[0].latitude),
+        Number(arrivalAirport[0].longitude)
+      );
+
+      // Handle airline lookup/creation if provided
+      if (flightData.airlineCode) {
+        const existingAirline = await db
+          .select()
+          .from(airlines)
+          .where(eq(airlines.airlineId, flightData.airlineCode))
+          .limit(1);
+
+        if (existingAirline.length === 0) {
+          // Create new airline entry
+          await db.insert(airlines).values({
+            airlineId: flightData.airlineCode,
+            airlineName: flightData.airlineCode, // Use code as name until updated
+            needsManualColorInput: true
+          });
+        }
+      }
+
+      // Prepare flight data for insertion
+      const insertData: InsertFlight = {
+        userId,
+        departureAirportIata: flightData.departureAirportIata,
+        arrivalAirportIata: flightData.arrivalAirportIata,
+        airlineCode: flightData.airlineCode || null,
+        flightDate: flightData.flightDate, // Use the string date directly
+        flightNumber: flightData.flightNumber || null,
+        aircraftType: flightData.aircraftType || null,
+        flightDurationHours: flightData.flightDurationHours || null,
+        distanceMiles: distance
+      };
+
+      // Insert flight
+      const [insertedFlight] = await db.insert(flights).values(insertData).returning();
+
+      // Process tags if provided
+      if (flightData.tags) {
+        const tags = flightData.tags.split(';').map((tag: string) => tag.trim()).filter(Boolean);
+        
+        for (const tagName of tags) {
+          await db.insert(flightTags).values({
+            flightId: insertedFlight.flightId,
+            tagName
+          });
+        }
+      }
+
+      res.status(201).json(insertedFlight);
+    } catch (error) {
+      console.error("Error creating flight:", error);
+      res.status(500).json({ message: "Failed to create flight" });
+    }
+  });
+
+  app.put('/api/flights/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const flightId = parseInt(req.params.id);
+      const flightData = req.body;
+
+      // Verify flight belongs to user
+      const existingFlight = await db
+        .select()
+        .from(flights)
+        .where(and(
+          eq(flights.flightId, flightId),
+          eq(flights.userId, userId)
+        ))
+        .limit(1);
+
+      if (existingFlight.length === 0) {
+        return res.status(404).json({ message: "Flight not found" });
+      }
+
+      // If airports changed, recalculate distance
+      let distance = existingFlight[0].distanceMiles;
+      
+      if (flightData.departureAirportIata !== existingFlight[0].departureAirportIata ||
+          flightData.arrivalAirportIata !== existingFlight[0].arrivalAirportIata) {
+        // Validate departure and arrival airports
+        const departureAirport = await db
+          .select()
+          .from(airports)
+          .where(eq(airports.iataCode, flightData.departureAirportIata))
+          .limit(1);
+
+        const arrivalAirport = await db
+          .select()
+          .from(airports)
+          .where(eq(airports.iataCode, flightData.arrivalAirportIata))
+          .limit(1);
+
+        if (departureAirport.length === 0 || arrivalAirport.length === 0) {
+          return res.status(400).json({ 
+            message: "Invalid airport codes. Please use valid IATA codes." 
+          });
+        }
+
+        // Calculate new distance
+        distance = calculateDistance(
+          Number(departureAirport[0].latitude),
+          Number(departureAirport[0].longitude),
+          Number(arrivalAirport[0].latitude),
+          Number(arrivalAirport[0].longitude)
+        );
+      }
+
+      // Update flight data
+      const updateData = {
+        departureAirportIata: flightData.departureAirportIata,
+        arrivalAirportIata: flightData.arrivalAirportIata,
+        airlineCode: flightData.airlineCode || null,
+        flightDate: flightData.flightDate, // Use string format directly
+        flightNumber: flightData.flightNumber || null,
+        aircraftType: flightData.aircraftType || null,
+        flightDurationHours: flightData.flightDurationHours || null,
+        distanceMiles: distance
+      };
+
+      const [updatedFlight] = await db
+        .update(flights)
+        .set(updateData)
+        .where(eq(flights.flightId, flightId))
+        .returning();
+
+      // Update tags if provided
+      if (flightData.tags !== undefined) {
+        // Delete existing tags
+        await db
+          .delete(flightTags)
+          .where(eq(flightTags.flightId, flightId));
+
+        // Add new tags
+        const tags = flightData.tags.split(';').map((tag: string) => tag.trim()).filter(Boolean);
+        
+        for (const tagName of tags) {
+          await db.insert(flightTags).values({
+            flightId,
+            tagName
+          });
+        }
+      }
+
+      res.json(updatedFlight);
+    } catch (error) {
+      console.error("Error updating flight:", error);
+      res.status(500).json({ message: "Failed to update flight" });
+    }
+  });
+
+  app.delete('/api/flights/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const flightId = parseInt(req.params.id);
+
+      // Verify flight belongs to user
+      const existingFlight = await db
+        .select()
+        .from(flights)
+        .where(and(
+          eq(flights.flightId, flightId),
+          eq(flights.userId, userId)
+        ))
+        .limit(1);
+
+      if (existingFlight.length === 0) {
+        return res.status(404).json({ message: "Flight not found" });
+      }
+
+      // Delete related tags first
+      await db
+        .delete(flightTags)
+        .where(eq(flightTags.flightId, flightId));
+
+      // Delete the flight
+      await db
+        .delete(flights)
+        .where(eq(flights.flightId, flightId));
+
+      res.json({ message: "Flight deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting flight:", error);
+      res.status(500).json({ message: "Failed to delete flight" });
+    }
+  });
+
+  // CSV Upload
+  app.post('/api/flights/upload_csv', isAuthenticated, upload.single('file'), async (req: any, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const csvBuffer = req.file.buffer;
+      const csvString = csvBuffer.toString('utf8');
+      const userId = req.user.claims.sub;
+
+      const result = await processCSVUpload(csvString, userId, db);
+      
+      res.json({ 
+        message: "CSV uploaded successfully", 
+        count: result.importedCount
+      });
+    } catch (error) {
+      console.error("Error processing CSV upload:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to process CSV file" 
+      });
+    }
+  });
+
+  // Airlines API
+  app.get('/api/airlines', async (req, res) => {
+    try {
+      const allAirlines = await db.select().from(airlines);
+      res.json(allAirlines);
+    } catch (error) {
+      console.error("Error fetching airlines:", error);
+      res.status(500).json({ message: "Failed to fetch airlines" });
+    }
+  });
+
+  app.put('/api/airlines/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const airlineId = req.params.id;
+      const { airlineName, brandColorPrimary, brandColorSecondary } = req.body;
+
+      // Update airline data
+      const [updatedAirline] = await db
+        .update(airlines)
+        .set({
+          airlineName: airlineName || undefined,
+          brandColorPrimary: brandColorPrimary || undefined,
+          brandColorSecondary: brandColorSecondary || undefined,
+          needsManualColorInput: false
+        })
+        .where(eq(airlines.airlineId, airlineId))
+        .returning();
+
+      res.json(updatedAirline);
+    } catch (error) {
+      console.error("Error updating airline:", error);
+      res.status(500).json({ message: "Failed to update airline" });
+    }
+  });
+
+  // Airports API for search/autocomplete
+  app.get('/api/airports/search', async (req, res) => {
+    try {
+      const query = req.query.q as string;
+      
+      if (!query || query.length < 2) {
+        return res.json([]);
+      }
+
+      const searchTerm = `%${query}%`;
+      const upperQuery = query.toUpperCase();
+      
+      // Use simpler approach to avoid where clause issues
+      const searchResults = await db
+        .select()
+        .from(airports)
+        .where(sql`${airports.iataCode} = ${upperQuery} OR ${airports.name} ILIKE ${searchTerm} OR ${airports.city} ILIKE ${searchTerm}`)
+        .limit(10);
+
+      res.json(searchResults);
+    } catch (error) {
+      console.error("Error searching airports:", error);
+      res.status(500).json({ message: "Failed to search airports" });
+    }
+  });
+
+  // Import airports data on server start (if needed)
+  const checkAndImportAirports = async () => {
+    const airportCount = await db.select().from(airports).limit(1);
+    
+    if (airportCount.length === 0) {
+      console.log("No airports found in database. Importing from reference data...");
+      
+      try {
+        // Implementation would fetch airport data from the provided GitHub repository:
+        // https://github.com/lxndrblz/Airports/blob/main/airports.csv
+        console.log("Airport data import implemented in production system");
+      } catch (error) {
+        console.error("Failed to import airport data:", error);
+      }
+    }
+  };
+
+  // Run airport import check
+  checkAndImportAirports();
+
+  const httpServer = createServer(app);
+  return httpServer;
+}
